@@ -1,0 +1,138 @@
+1,4d0
+< #!/usr/bin/env python
+< # coding: utf-8
+< 
+< # In[2]:
+5a2
+> # --->>>> change var modis0 = modis.where(latmask.gte(50),0).where(latmask.lt(50),-9999)
+10,13c7
+< 
+< 
+< # In[18]:
+< 
+---
+> import pandas as pd
+93c87
+<     return image.updateMask(count_valid.gte(23)).updateMask(image.select('NDVI').gt(0))
+---
+>     return image.updateMask(count_valid.gte(15))
+107c101
+< def cum_dividelast(image):
+---
+> def dividelast(image):
+113c107
+<     tmp = image.select('NDVI').reproject(crs = 'SR-ORG:6974',scale = 463.3127165275).reduceResolution(ee.Reducer.stdDev(), False, 65536).reproject(ee.Projection('EPSG:4326').scale(0.05, 0.05)).updateMask(1).rename('stdDev')
+---
+>     tmp = image.select('NDVI').reproject(crs = 'SR-ORG:6974',scale = 463.3127165275).reduceResolution(ee.Reducer.stdDev(), bestEffort=False,maxPixels=150).reproject(ee.Projection('EPSG:4326').scale(0.05, 0.05)).updateMask(1).rename('stdDev')
+194,198d187
+< # ### Load in collections and required images
+< 
+< # In[4]:
+< 
+< 
+203,211c192
+< #smallgrid = ee.FeatureCollection('users/marcogirardello/phenoutils/small5kmit')
+< testarea = ee.Image('users/marcogirardello/phenoutils/NDVI_small')
+< smallgrid = ee.FeatureCollection('users/marcogirardello/phenoutils/grid_export_phenology2')
+< 
+< 
+< # ### <span style="color:blue">Pre-processing step 1: filtering data by quality flags and calculated NDVI.</span>
+< # This include snow, cloud, fire, cloud shadows and the land/water mask
+< 
+< # In[5]:
+---
+> smallgrid = ee.FeatureCollection('users/marcogirardello/phenoutils/grid_export_phenology3')
+216,221c197
+< end_date   = ee.Date.fromYMD(2020, 12, 31)
+< 
+< 
+< # In[6]:
+< 
+< 
+---
+> end_date  = ee.Date.fromYMD(2019, 12, 31)
+225,228d200
+< 
+< # In[7]:
+< 
+< 
+232,235d203
+< 
+< # In[8]:
+< 
+< 
+239,244d206
+< 
+< # ### <span style="color:blue">Main calculations</span>
+< 
+< # In[9]:
+< 
+< 
+248,257c210,211
+< 
+< # In[11]:
+< 
+< 
+< #year = int(os.environ["year"])
+< year = 2002
+< 
+< 
+< # In[22]:
+< 
+---
+> # get year from bash environment
+> year = int(os.environ["year"])
+264a219
+> meanNDVI = MOD09ndviY.mean()
+288c243
+< last = last.updateMask(last.gte(9))
+---
+> last = last.updateMask(last.gte(6))
+292c247
+< Cumulative_mean_at_5km = Cumulative_mean.reproject(crs = 'SR-ORG:6974',scale = 463.3127165275).reduceResolution(ee.Reducer.mean(), False, 65536).reproject(ee.Projection('EPSG:4326').scale(0.05, 0.05)).updateMask(1) 
+---
+> Cumulative_mean_at_5km = Cumulative_mean.reproject(crs = 'SR-ORG:6974',scale = 463.3127165275).reduceResolution(ee.Reducer.mean(), bestEffort=False,maxPixels= 150).reproject(ee.Projection('EPSG:4326').scale(0.05, 0.05)).updateMask(1) 
+295c250
+< cumulativeNorm = cumulative.map(cum_dividelast)
+---
+> cumulativeNorm = cumulative.map(dividelast)
+302,303d256
+< #cumulativeStd10_mean = cumulativeStd10_mean.updateMask(last.gte(9))
+< #cumulativeStd10_mean_at_5km = cumulativeStd10_mean.reproject(crs = 'SR-ORG:6974',scale = 463.3127165275).reduceResolution(ee.Reducer.mean(), False, 65536).reproject(ee.Projection('EPSG:4326').scale(0.05, 0.05)).updateMask(1)
+308,315d260
+< 
+< # In[23]:
+< 
+< 
+< cumulativeStd10_mean_at_5km1
+< 
+< 
+< # 
+317,320d261
+< 
+< # In[30]:
+< 
+< 
+323,327d263
+< 
+< 
+< # In[ ]:
+< 
+< 
+330,331c266,268
+< 
+< # In[ ]:
+---
+> # correct number of rows
+> #missingp = pd.read_csv("/home/scripts/missingy2002.csv").drop(['check'],axis = 1)
+> #polyl = missingp.loc[minpoly:maxpoly]['tmp'].tolist()
+334c271
+< # Remember year!
+---
+> # loop through polygons
+338a276,278
+>   roi1 = roi1.bounds()
+>   # polygon number
+>   polyname = 'Y_'+str(year)+'_'+'poly_'+str(poly)
+341a282
+>                                      description =  polyname,
